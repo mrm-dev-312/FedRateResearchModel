@@ -1,0 +1,129 @@
+// Prisma schema for Macro Signal Research Kit v3
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-py"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model MacroRelease {
+  id           Int      @id @default(autoincrement())
+  series_id    String
+  release_time DateTime @db.Timestamp
+  actual       Float
+  consensus    Float?
+  surprise     Float?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  @@index([series_id, release_time])
+  @@map("macro_releases")
+}
+
+model MarketPrice {
+  id         BigInt   @id @default(autoincrement())
+  ticker     String
+  ts         DateTime @db.Timestamp
+  open       Float
+  high       Float
+  low        Float
+  close      Float
+  volume     BigInt?
+  created_at DateTime @default(now())
+
+  @@index([ticker, ts])
+  @@map("market_prices")
+}
+
+model TextFeature {
+  id         Int      @id @default(autoincrement())
+  doc_id     String
+  ts         DateTime @db.Timestamp
+  score      Float
+  embedding  Bytes?
+  source     String   // "fomc", "fed_minutes", "news", etc.
+  created_at DateTime @default(now())
+
+  @@index([doc_id, ts])
+  @@map("text_features")
+}
+
+model Feature {
+  id          Int      @id @default(autoincrement())
+  feature_set String   // "technical", "macro_surprise", "sentiment"
+  ticker      String?
+  ts          DateTime @db.Timestamp
+  name        String   // "rsi_14", "gdp_surprise", "sentiment_fomc"
+  value       Float
+  created_at  DateTime @default(now())
+
+  @@index([feature_set, ticker, ts])
+  @@index([name, ts])
+  @@map("features")
+}
+
+model ModelArtifact {
+  id           Int      @id @default(autoincrement())
+  strategy_id  String
+  model_type   String   // "patchtst", "timesnet", "lstm", "timegpt"
+  blob         Bytes    // serialized model or metadata
+  metrics_json Json     // training metrics, validation scores
+  config_yaml  String?  // model configuration
+  created_at   DateTime @default(now())
+
+  @@index([strategy_id, model_type])
+  @@map("model_artifacts")
+}
+
+model BacktestResult {
+  id           Int      @id @default(autoincrement())
+  strategy_id  String
+  start_date   DateTime @db.Date
+  end_date     DateTime @db.Date
+  ticker       String
+  total_return Float
+  sharpe_ratio Float
+  max_drawdown Float
+  num_trades   Int
+  win_rate     Float
+  results_json Json     // detailed trade log
+  created_at   DateTime @default(now())
+
+  @@index([strategy_id, ticker])
+  @@map("backtest_results")
+}
+
+model Strategy {
+  id           String   @id
+  name         String
+  description  String?
+  config_yaml  String   // strategy configuration
+  active       Boolean  @default(true)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  @@map("strategies")
+}
+
+model Signal {
+  id            BigInt   @id @default(autoincrement())
+  strategy_id   String
+  ticker        String
+  signal_time   DateTime @db.Timestamp
+  trade_time    DateTime @db.Timestamp
+  action        String   // "buy", "sell", "hold"
+  signal_strength Float
+  price         Float
+  quantity      Float?
+  confidence    Float?
+  metadata_json Json?    // additional signal context
+  created_at    DateTime @default(now())
+
+  @@index([strategy_id, ticker, signal_time])
+  @@index([trade_time])
+  @@map("signals")
+}

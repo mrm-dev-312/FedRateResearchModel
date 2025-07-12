@@ -1,0 +1,143 @@
+# Strategy Configuration Schema
+# YAML format for defining trading strategies
+
+strategy:
+  id: "momentum_patchtst_v1"
+  name: "Momentum + PatchTST Transformer"
+  description: "Combines technical momentum signals with PatchTST transformer predictions for EUR/USD trading"
+  version: "1.0.0"
+  active: true
+  
+# Risk Management
+risk:
+  max_positions: 1
+  position_sizing: "volatility_target"  # "fixed", "kelly", "volatility_target"
+  max_leverage: 2.0
+  stop_loss_pct: 0.02  # 2% stop loss
+  take_profit_pct: 0.04  # 4% take profit
+  max_drawdown_limit: 0.15  # 15% max drawdown
+  
+# Trading Parameters
+trading:
+  initial_capital: 100000
+  commission_rate: 0.002  # 0.2% commission
+  signal_threshold: 0.015  # 1.5% minimum signal strength
+  min_trade_interval: "1H"  # Minimum 1 hour between trades
+  trading_hours:
+    start: "08:00"
+    end: "17:00"
+    timezone: "UTC"
+  
+# Data Sources
+data:
+  primary_ticker: "EURUSD"
+  timeframe: "1H"  # 1-hour bars
+  lookback_days: 90
+  features:
+    technical:
+      - "rsi_14"
+      - "macd_signal"
+      - "bb_position"
+      - "atr_20"
+      - "volume_sma_ratio"
+    macro:
+      - "ecb_rate_surprise"
+      - "fed_rate_surprise"
+      - "cpi_surprise"
+      - "nfp_surprise"
+    sentiment:
+      - "fomc_sentiment"
+      - "ecb_sentiment"
+      
+# Model Configuration
+models:
+  primary:
+    type: "patchtst"
+    config:
+      context_length: 168  # 1 week of hourly data
+      prediction_length: 24  # 24 hours ahead
+      patch_length: 12
+      hidden_size: 128
+      num_layers: 4
+      dropout: 0.1
+    training:
+      epochs: 50
+      batch_size: 64
+      learning_rate: 0.001
+      validation_split: 0.2
+      early_stopping_patience: 10
+      
+  ensemble:
+    enabled: true
+    models:
+      - type: "lstm"
+        weight: 0.3
+        config:
+          hidden_size: 64
+          num_layers: 2
+          sequence_length: 24
+      - type: "timegpt"
+        weight: 0.2
+        config:
+          freq: "H"
+          forecasting_horizon: 24
+          
+# Signal Generation Rules
+signals:
+  entry_conditions:
+    ml_signal:
+      min_strength: 0.015
+      min_confidence: 0.6
+    technical_filters:
+      trend_alignment: true  # Price above/below 20-period SMA
+      volatility_regime: "normal"  # Avoid high volatility periods
+      momentum_confirmation: true  # RSI and MACD alignment
+    macro_filters:
+      max_news_impact: 0.8  # Avoid trading during high-impact news
+      time_since_last_signal: "2H"
+      
+  exit_conditions:
+    profit_target: 0.04  # 4% profit target
+    stop_loss: 0.02  # 2% stop loss
+    time_based: "48H"  # Maximum hold time
+    signal_reversal: true  # Exit if signal reverses
+  text_sentiment: false  # Optional Gemini API
+  lagged_features: [1, 2, 3, 5]
+  
+model:
+  type: "patchtst"
+  context_length: 256
+  prediction_length: 30
+  hidden_size: 128
+  num_layers: 6
+  num_heads: 8
+  dropout: 0.1
+  
+training:
+  epochs: 25
+  batch_size: 32
+  learning_rate: 0.0001
+  validation_split: 0.2
+  early_stopping_patience: 5
+  random_seed: 42
+  
+backtest:
+  start_date: "2023-01-01"
+  initial_capital: 100000
+  transaction_cost: 0.001  # 0.1% per trade
+  max_positions: 1
+  rebalance_frequency: "daily"
+  
+risk_management:
+  max_drawdown: 0.15
+  stop_loss: 0.05
+  position_sizing: "fixed"  # or "kelly", "volatility_target"
+  
+evaluation:
+  metrics:
+    - "total_return"
+    - "sharpe_ratio"
+    - "max_drawdown"
+    - "win_rate"
+    - "calmar_ratio"
+  benchmark: "SPY"

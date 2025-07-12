@@ -1,0 +1,78 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Setup MSRK v3 Environment",
+			"type": "shell",
+			"command": "${workspaceFolder}/setup_env.bat",
+			"windows": {
+				"command": "${workspaceFolder}/setup_env.bat"
+			},
+			"linux": {
+				"command": "chmod +x ${workspaceFolder}/setup_env.sh && ${workspaceFolder}/setup_env.sh"
+			},
+			"osx": {
+				"command": "chmod +x ${workspaceFolder}/setup_env.sh && ${workspaceFolder}/setup_env.sh"
+			},
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Activate Environment",
+			"type": "shell",
+			"command": "${workspaceFolder}/activate_env.bat",
+			"windows": {
+				"command": "${workspaceFolder}/activate_env.bat"
+			},
+			"linux": {
+				"command": "source ${workspaceFolder}/activate_env.sh"
+			},
+			"osx": {
+				"command": "source ${workspaceFolder}/activate_env.sh"
+			},
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Initialize Database",
+			"type": "shell",
+			"command": "npx",
+			"args": ["prisma", "db", "push"],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "Start Jupyter Notebook",
+			"type": "shell",
+			"command": "jupyter",
+			"args": ["notebook", "notebooks/daily_workflow.ipynb"],
+			"group": "build",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": false,
+				"panel": "shared"
+			},
+			"problemMatcher": [],
+			"isBackground": true
+		}
+	]
+}

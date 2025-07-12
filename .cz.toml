@@ -1,0 +1,7 @@
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
+tag_format = "v$version"
+
+[tool.commitizen.settings]
+schema_pattern = "(build|ci|docs|feat|fix|perf|refactor|style|test|chore|revert)!?"
